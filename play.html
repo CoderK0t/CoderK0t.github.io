@@ -17,6 +17,9 @@
             --accent-2: #06b6d4;
             --stars-color: #ffd700;
             --text: #e6eef8;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
         }
         
         * {
@@ -33,6 +36,7 @@
             background: linear-gradient(180deg, var(--bg1), var(--bg2));
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         }
         
         .header {
@@ -61,6 +65,7 @@
             overflow-y: auto;
             padding: 20px;
             padding-bottom: 70px;
+            scroll-behavior: smooth;
         }
         
         .section {
@@ -87,10 +92,18 @@
             transition: transform 0.2s;
             width: 100%;
             justify-content: center;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
         }
         
         .btn:hover {
             transform: translateY(-2px);
+            box-shadow: 0 12px 25px rgba(99, 102, 241, 0.3);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
         }
         
         .stars-btn {
@@ -125,15 +138,19 @@
             gap: 4px;
             transition: color 0.2s;
             opacity: 0.7;
+            padding: 8px 12px;
+            border-radius: 8px;
         }
         
         .bottom-nav button.active {
             opacity: 1;
             color: var(--accent-2);
+            background: rgba(6, 182, 212, 0.1);
         }
         
         .bottom-nav button:hover {
             color: var(--accent-2);
+            background: rgba(6, 182, 212, 0.05);
         }
         
         /* Стили для профиля */
@@ -210,6 +227,7 @@
             color: white;
             font-weight: bold;
             box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+            border: none;
         }
         
         .add-balance:hover {
@@ -259,6 +277,7 @@
             align-items: center;
             gap: 6px;
             justify-content: center;
+            font-size: 14px;
         }
         
         .join-btn {
@@ -303,6 +322,7 @@
             justify-content: center;
             z-index: 1000;
             padding: 20px;
+            animation: fadeIn 0.3s ease;
         }
         
         .modal-content {
@@ -313,7 +333,7 @@
             max-width: 420px;
             text-align: left;
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
-            animation: fadeIn 0.3s ease;
+            animation: slideUp 0.3s ease;
         }
         
         .modal-content h2 {
@@ -339,6 +359,11 @@
             margin-bottom: 10px;
             background: #334155;
             color: var(--text);
+            font-size: 16px;
+        }
+        
+        .modal-content input:focus {
+            outline: 2px solid var(--accent);
         }
         
         .modal-actions {
@@ -361,6 +386,7 @@
             cursor: pointer;
             transition: transform 0.2s;
             border: none;
+            font-size: 16px;
         }
         
         .modal-btn:hover {
@@ -391,15 +417,66 @@
             margin-right: 5px;
         }
         
+        /* Стили для статуса платежа */
+        .payment-status {
+            text-align: center;
+            padding: 20px 0;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #334155;
+            border-radius: 4px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+        
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            animation: progressAnimation 2s infinite;
+        }
+        
+        .development-warning {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        
+        .development-warning i {
+            color: #ffc107;
+            margin-right: 8px;
+        }
+        
+        /* Анимации */
         @keyframes fadeIn {
             from {
                 opacity: 0;
-                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
             }
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
+        }
+        
+        @keyframes progressAnimation {
+            0% { width: 0%; }
+            50% { width: 70%; }
+            100% { width: 100%; }
         }
         
         /* Адаптивность для Telegram */
@@ -422,6 +499,16 @@
             .balance {
                 font-size: 18px;
             }
+            
+            .btn {
+                padding: 12px 18px;
+                font-size: 14px;
+            }
+            
+            .modal-content {
+                padding: 20px;
+                margin: 10px;
+            }
         }
     </style>
 </head>
@@ -431,14 +518,14 @@
     </div>
     
     <div class="container">
-        <div id="play-section" class="section active">
+        <div id="play-section" class="section">
             <h2>Игровой режим</h2>
-            <a href="#" class="btn" id="searchGame"><i class="fa-solid fa-magnifying-glass"></i> Искать игру</a>
-            <a href="#" class="btn" id="createGame"><i class="fa-solid fa-plus"></i> Создать игру</a>
+            <button class="btn" id="searchGame"><i class="fa-solid fa-magnifying-glass"></i> Искать игру</button>
+            <button class="btn" id="createGame"><i class="fa-solid fa-plus"></i> Создать игру</button>
             <div class="games-list" id="gamesList"></div>
         </div>
         
-        <div id="profile-section" class="section">
+        <div id="profile-section" class="section active">
             <div class="profile-container">
                 <div class="avatar" id="userAvatar">
                     <i class="fa-solid fa-user"></i>
@@ -448,11 +535,17 @@
                 <div class="balance-container">
                     <div class="balance">
                         <i class="fa-solid fa-coins stars-icon"></i>
-                        Баланс: 0
+                        Баланс: <span id="balanceAmount">0</span>
                     </div>
-                    <div class="add-balance">
+                    <button class="add-balance">
                         <i class="fa-solid fa-plus"></i>
-                    </div>
+                    </button>
+                </div>
+                
+                <div class="development-warning">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <strong>Режим разработки</strong>
+                    <p>Баланс обновляется вручную. В реальном приложении будет автоматическая синхронизация с сервером.</p>
                 </div>
             </div>
         </div>
@@ -530,9 +623,58 @@
         </div>
     </div>
 
+    <div class="modal" id="paymentStatusModal">
+        <div class="modal-content">
+            <h2><i class="fa-solid fa-spinner fa-spin"></i> Обработка платежа</h2>
+            <div class="payment-status">
+                <p>Пожалуйста, подождите...</p>
+                <div class="progress-bar">
+                    <div class="progress"></div>
+                </div>
+                <p>Счет создан. Проверьте чат с ботом для завершения оплаты.</p>
+            </div>
+            <button class="modal-btn create-btn" id="closePaymentStatus">
+                <i class="fa-solid fa-check"></i> Понятно
+            </button>
+        </div>
+    </div>
+
     <script>
         // Инициализация Telegram Web App
         let tg = window.Telegram.WebApp;
+        
+        // Эмуляция Telegram WebApp для локальной разработки
+        if (!tg || !tg.initDataUnsafe) {
+            tg = {
+                initDataUnsafe: {
+                    user: {
+                        id: 123456789,
+                        first_name: 'Тестовый',
+                        username: 'testuser',
+                        photo_url: null
+                    }
+                },
+                expand: function() {
+                    console.log('WebApp expanded');
+                },
+                enableClosingConfirmation: function() {
+                    console.log('Closing confirmation enabled');
+                },
+                sendData: function(data) {
+                    console.log('Data sent to bot:', data);
+                    alert('В реальной среде это отправило бы данные боту. Отправленные данные: ' + data);
+                },
+                showPopup: function(options) {
+                    alert(options.title + ': ' + options.message);
+                },
+                showAlert: function(message) {
+                    alert(message);
+                }
+            };
+            
+            console.log('Telegram WebApp environment simulated for development');
+        }
+        
         tg.expand();
         tg.enableClosingConfirmation();
         
@@ -558,6 +700,11 @@
         const submitBalance = document.getElementById('submitBalance');
         const currencyAmount = document.getElementById('currencyAmount');
         const starsCost = document.getElementById('starsCost');
+        const balanceAmount = document.getElementById('balanceAmount');
+        
+        // Элементы статуса платежа
+        const paymentStatusModal = document.getElementById('paymentStatusModal');
+        const closePaymentStatus = document.getElementById('closePaymentStatus');
         
         // Элементы профиля
         const userAvatar = document.getElementById('userAvatar');
@@ -629,7 +776,7 @@
                 document.getElementById('players').value = '';
                 document.getElementById('bet').value = '';
                 
-                // Показываем уведомление в Telegram
+                // Показываем уведомление
                 tg.showPopup({
                     title: "Игра создана!",
                     message: `Игра "${name}" успешно создана.`,
@@ -665,27 +812,34 @@
             const amount = parseInt(currencyAmount.value);
             
             if (amount && amount >= 10) {
-                // Отправляем данные в бота для создания инвойса в звездах
                 const data = {
                     type: 'payment',
                     amount: amount,
-                    currency: 'stars'
+                    currency: 'stars',
+                    user_id: tg.initDataUnsafe.user.id,
+                    timestamp: Date.now()
                 };
                 
-                if (window.Telegram && Telegram.WebApp) {
-                    Telegram.WebApp.sendData(JSON.stringify(data));
-                    balanceModal.style.display = 'none';
+                // Отправка данных через Telegram Web App
+                tg.sendData(JSON.stringify(data));
+                
+                // Показ статуса обработки
+                paymentStatusModal.style.display = 'flex';
+                balanceModal.style.display = 'none';
+                
+                // В реальном приложении здесь будет обновление баланса после успешного платежа
+                setTimeout(() => {
+                    paymentStatusModal.style.display = 'none';
+                    balanceAmount.textContent = parseInt(balanceAmount.textContent) + amount;
                     
                     tg.showPopup({
                         title: "Запрос отправлен",
                         message: `Создан счет на ${amount} единиц валюты за ${amount} звезд`,
                         buttons: [{type: "ok"}]
                     });
-                } else {
-                    alert(`Создан счет на ${amount} единиц валюты за ${amount} звезд`);
-                    balanceModal.style.display = 'none';
-                }
-            } else {
+                }, 3000);
+            } 
+            else {
                 tg.showPopup({
                     title: "Ошибка",
                     message: "Введите корректное количество (минимум 10)",
@@ -694,12 +848,20 @@
             }
         });
         
+        closePaymentStatus.addEventListener('click', function() {
+            paymentStatusModal.style.display = 'none';
+        });
+        
+        // Закрытие модальных окон при клике вне их
         window.addEventListener('click', (e) => {
             if (e.target === modal) {
                 modal.style.display = 'none';
             }
             if (e.target === balanceModal) {
                 balanceModal.style.display = 'none';
+            }
+            if (e.target === paymentStatusModal) {
+                paymentStatusModal.style.display = 'none';
             }
         });
         
@@ -739,20 +901,12 @@
                     userAvatar.innerHTML = '<i class="fa-solid fa-user"></i>';
                 }
                 
-                // Отправляем данные на сервер для сохранения
-                sendUserDataToServer(user);
             } else {
                 // Если данные недоступны, показываем тестовые данные
                 userName.textContent = 'Тестовый пользователь';
                 userHandle.textContent = '@testuser';
                 userHandle.style.display = 'block';
             }
-        }
-        
-        // Функция для отправки данных пользователя на сервер
-        function sendUserDataToServer(user) {
-            // Здесь должен быть код для отправки данных на ваш сервер
-            console.log('Данные пользователя для отправки на сервер:', user);
         }
         
         // Инициализация при загрузке
