@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CubeGift — Игровая платформа</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root {
+            --bg1: #0f172a;
+            --bg2: #0b1324;
+            --accent: #7c3aed;
+            --accent-2: #06b6d4;
+            --stars-color: #ffd700;
+            --text: #e6eef8;
+        }
+        
+        * {
+            box-sizing: border-box;
+            transition: all 0.2s ease;
+        }
+        
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            color: var(--text);
+            background: linear-gradient(180deg, var(--bg1), var(--bg2));
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            padding: 16px;
+            text-align: center;
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 800;
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            padding-bottom: 70px;
+        }
+        
+        .section {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .section.active {
+            display: block;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 22px;
+            border-radius: 12px;
+            background: linear-gradient(90deg, var(--accent), #4f46e5);
+            color: #fff;
+            font-weight: 700;
+            text-decoration: none;
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.2);
+            margin: 10px 0;
+            transition: transform 0.2s;
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .stars-btn {
+            background: linear-gradient(90deg, #ffd700, #ff6b00);
+            box-shadow: 0 8px 20px rgba(255, 215, 0, 0.3);
+        }
+        
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            background: rgba(15, 23, 42, 0.95);
+            padding: 12px 0;
+            backdrop-filter: blur(6px);
+            z-index: 100;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .bottom-nav button {
+            background: none;
+            border: none;
+            color: var(--text);
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            transition: color 0.2s;
+            opacity: 0.7;
+        }
+        
+        .bottom-nav button.active {
+            opacity: 1;
+            color: var(--accent-2);
+        }
+        
+        .bottom-nav button:hover {
+            color: var(--accent-2);
+        }
+        
+        /* Стили для профиля */
+        .profile-container {
+            text-align: center;
+            padding: 20px 0;
+        }
+        
+        .avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--accent), var(--accent-2));
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+            color: white;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+        }
+        
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .username {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .user-handle {
+            color: #94a3b8;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+        
+        .balance-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .balance {
+            font-size: 20px;
+            font-weight: 600;
+            padding: 10px 20px;
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .stars-icon {
+            color: var(--stars-color);
+        }
+        
+        .add-balance {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #ffd700, #ff6b00);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+        }
+        
+        .add-balance:hover {
+            transform: scale(1.1);
+        }
+        
+        /* Стили для игрового раздела */
+        .games-list {
+            margin-top: 20px;
+            width: 100%;
+        }
+        
+        .game-card {
+            background: #1e293b;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            text-align: left;
+        }
+        
+        .game-card h3 {
+            margin: 0 0 6px 0;
+            font-size: 18px;
+        }
+        
+        .game-card p {
+            margin: 4px 0;
+            font-size: 14px;
+            color: #cbd5e1;
+        }
+        
+        .lobby-actions {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .lobby-btn {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            justify-content: center;
+        }
+        
+        .join-btn {
+            background: linear-gradient(90deg, #22c55e, #16a34a);
+            color: #fff;
+        }
+        
+        .start-btn {
+            background: linear-gradient(90deg, #f59e0b, #d97706);
+            color: #fff;
+        }
+        
+        /* Стили для информации */
+        .info-container {
+            text-align: center;
+            padding: 20px 0;
+        }
+        
+        .info-container p {
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .social-link {
+            display: inline-block;
+            padding: 12px 24px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        
+        /* Модальное окно */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+        
+        .modal-content {
+            background: #1e293b;
+            padding: 28px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 420px;
+            text-align: left;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .modal-content h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 22px;
+            font-weight: 700;
+            text-align: center;
+        }
+        
+        .modal-content label {
+            display: block;
+            margin-bottom: 6px;
+            margin-top: 12px;
+            font-weight: 600;
+        }
+        
+        .modal-content input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: none;
+            margin-bottom: 10px;
+            background: #334155;
+            color: var(--text);
+        }
+        
+        .modal-actions {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        
+        .modal-btn {
+            flex: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: transform 0.2s;
+            border: none;
+        }
+        
+        .modal-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .close-btn {
+            background: linear-gradient(90deg, #ef4444, #dc2626);
+            color: #fff;
+        }
+        
+        .create-btn {
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            color: #fff;
+        }
+        
+        .stars-info {
+            text-align: center;
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(255, 215, 0, 0.1);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+        
+        .stars-info i {
+            color: var(--stars-color);
+            margin-right: 5px;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Адаптивность для Telegram */
+        @media (max-width: 500px) {
+            .container {
+                padding: 15px;
+                padding-bottom: 70px;
+            }
+            
+            .avatar {
+                width: 100px;
+                height: 100px;
+                font-size: 40px;
+            }
+            
+            .username {
+                font-size: 20px;
+            }
+            
+            .balance {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>CubeGift ⭐</h1>
+    </div>
+    
+    <div class="container">
+        <div id="play-section" class="section active">
+            <h2>Игровой режим</h2>
+            <a href="#" class="btn" id="searchGame"><i class="fa-solid fa-magnifying-glass"></i> Искать игру</a>
+            <a href="#" class="btn" id="createGame"><i class="fa-solid fa-plus"></i> Создать игру</a>
+            <div class="games-list" id="gamesList"></div>
+        </div>
+        
+        <div id="profile-section" class="section">
+            <div class="profile-container">
+                <div class="avatar" id="userAvatar">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+                <div class="username" id="userName">Загрузка...</div>
+                <div class="user-handle" id="userHandle">@username</div>
+                <div class="balance-container">
+                    <div class="balance">
+                        <i class="fa-solid fa-coins stars-icon"></i>
+                        Баланс: 0
+                    </div>
+                    <div class="add-balance">
+                        <i class="fa-solid fa-plus"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="info-section" class="section">
+            <div class="info-container">
+                <h2><i class="fa-solid fa-circle-info"></i> О приложении</h2>
+                <p>CubeGift — это игровая платформа, где вы можете участвовать в розыгрышах и получать ценные призы.</p>
+                <p>Пополняйте баланс Telegram Stars и выигрывайте подарки!</p>
+                
+                <div class="stars-info">
+                    <i class="fa-solid fa-star"></i>
+                    <strong>Оплата Telegram Stars</strong>
+                    <p>Безопасные и мгновенные платежи через Telegram</p>
+                </div>
+                
+                <a href="https://t.me/CubeGift" class="social-link" target="_blank">
+                    <i class="fab fa-telegram"></i> Официальный канал @CubeGift
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <button id="navProfile" class="active">
+            <i class="fa-solid fa-user-astronaut fa-lg"></i>
+            <span>Профиль</span>
+        </button>
+        <button id="navPlay">
+            <i class="fa-solid fa-dice fa-lg"></i>
+            <span>Играть</span>
+        </button>
+        <button id="navInfo">
+            <i class="fa-solid fa-circle-info fa-lg"></i>
+            <span>Информация</span>
+        </button>
+    </div>
+
+    <div class="modal" id="createModal">
+        <div class="modal-content">
+            <h2><i class="fa-solid fa-gamepad"></i> Создание игры</h2>
+            <label for="gameName">Название</label>
+            <input type="text" id="gameName" placeholder="Введите название" />
+            <label for="players">Сколько человек может вступить</label>
+            <input type="number" id="players" min="2" max="10" placeholder="Например: 4" />
+            <label for="bet">Ставка (звезды)</label>
+            <input type="number" id="bet" min="0" placeholder="Введите ставку в звездах" />
+            <div class="modal-actions">
+                <button class="modal-btn close-btn" id="closeModal"><i class="fa-solid fa-xmark"></i> Закрыть</button>
+                <button class="modal-btn create-btn" id="submitGame"><i class="fa-solid fa-check"></i> Создать</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="balanceModal">
+        <div class="modal-content">
+            <h2><i class="fa-solid fa-stars" style="color: #ffd700;"></i> Пополнение баланса</h2>
+            
+            <div class="stars-info">
+                <i class="fa-solid fa-info-circle"></i>
+                <strong>Оплата Telegram Stars</strong>
+                <p>1 единица валюты = 1 звезда</p>
+            </div>
+            
+            <label for="currencyAmount">Количество валюты</label>
+            <input type="number" id="currencyAmount" min="10" placeholder="Введите количество" />
+            <p style="font-size: 14px; margin: 10px 0; text-align: center;">
+                Стоимость: <span id="starsCost">0</span> ⭐
+            </p>
+            
+            <div class="modal-actions">
+                <button class="modal-btn close-btn" id="closeBalanceModal"><i class="fa-solid fa-xmark"></i> Отмена</button>
+                <button class="modal-btn create-btn" id="submitBalance"><i class="fa-solid fa-star"></i> Оплатить звёздами</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация Telegram Web App
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.enableClosingConfirmation();
+        
+        // Элементы DOM
+        const navProfile = document.getElementById('navProfile');
+        const navPlay = document.getElementById('navPlay');
+        const navInfo = document.getElementById('navInfo');
+        const playSection = document.getElementById('play-section');
+        const profileSection = document.getElementById('profile-section');
+        const infoSection = document.getElementById('info-section');
+        const sections = document.querySelectorAll('.section');
+        const navButtons = document.querySelectorAll('.bottom-nav button');
+        
+        const createBtn = document.getElementById('createGame');
+        const modal = document.getElementById('createModal');
+        const closeBtn = document.getElementById('closeModal');
+        const submitBtn = document.getElementById('submitGame');
+        const gamesList = document.getElementById('gamesList');
+        
+        // Элементы пополнения баланса
+        const balanceModal = document.getElementById('balanceModal');
+        const closeBalanceModal = document.getElementById('closeBalanceModal');
+        const submitBalance = document.getElementById('submitBalance');
+        const currencyAmount = document.getElementById('currencyAmount');
+        const starsCost = document.getElementById('starsCost');
+        
+        // Элементы профиля
+        const userAvatar = document.getElementById('userAvatar');
+        const userName = document.getElementById('userName');
+        const userHandle = document.getElementById('userHandle');
+        
+        // Навигация
+        function showSection(sectionId) {
+            sections.forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(sectionId).classList.add('active');
+            
+            navButtons.forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            if (sectionId === 'play-section') {
+                navPlay.classList.add('active');
+            } else if (sectionId === 'profile-section') {
+                navProfile.classList.add('active');
+            } else if (sectionId === 'info-section') {
+                navInfo.classList.add('active');
+            }
+        }
+        
+        navProfile.addEventListener('click', () => {
+            showSection('profile-section');
+        });
+        
+        navPlay.addEventListener('click', () => {
+            showSection('play-section');
+        });
+        
+        navInfo.addEventListener('click', () => {
+            showSection('info-section');
+        });
+        
+        // Модальное окно создания игры
+        createBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            modal.style.display = 'flex';
+        });
+        
+        closeBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            modal.style.display = 'none';
+        });
+        
+        submitBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('gameName').value.trim();
+            const players = document.getElementById('players').value;
+            const bet = document.getElementById('bet').value;
+            
+            if (name && players && bet !== "") {
+                const card = document.createElement('div');
+                card.className = 'game-card';
+                card.innerHTML = `<h3><i class='fa-solid fa-dice'></i> ${name}</h3>
+                                  <p><i class='fa-solid fa-users'></i> Игроков: ${players}</p>
+                                  <p><i class='fa-solid fa-star stars-icon'></i> Ставка: ${bet} звезд</p>
+                                  <div class='lobby-actions'>
+                                    <button class='lobby-btn join-btn'><i class='fa-solid fa-door-open'></i> Вступить</button>
+                                    <button class='lobby-btn start-btn'><i class='fa-solid fa-play'></i> Начать</button>
+                                  </div>`;
+                gamesList.appendChild(card);
+                modal.style.display = 'none';
+                document.getElementById('gameName').value = '';
+                document.getElementById('players').value = '';
+                document.getElementById('bet').value = '';
+                
+                // Показываем уведомление в Telegram
+                tg.showPopup({
+                    title: "Игра создана!",
+                    message: `Игра "${name}" успешно создана.`,
+                    buttons: [{type: "ok"}]
+                });
+            } else {
+                tg.showPopup({
+                    title: "Ошибка",
+                    message: "Заполните все поля",
+                    buttons: [{type: "ok"}]
+                });
+            }
+        });
+        
+        // Модальное окно пополнения баланса
+        document.querySelector('.add-balance').addEventListener('click', function() {
+            currencyAmount.value = '';
+            starsCost.textContent = '0';
+            balanceModal.style.display = 'flex';
+        });
+        
+        // Обновление стоимости в звездах
+        currencyAmount.addEventListener('input', function() {
+            const amount = parseInt(this.value) || 0;
+            starsCost.textContent = amount;
+        });
+        
+        closeBalanceModal.addEventListener('click', function() {
+            balanceModal.style.display = 'none';
+        });
+        
+        submitBalance.addEventListener('click', function() {
+            const amount = parseInt(currencyAmount.value);
+            
+            if (amount && amount >= 10) {
+                // Отправляем данные в бота для создания инвойса в звездах
+                const data = {
+                    type: 'payment',
+                    amount: amount,
+                    currency: 'stars'
+                };
+                
+                if (window.Telegram && Telegram.WebApp) {
+                    Telegram.WebApp.sendData(JSON.stringify(data));
+                    balanceModal.style.display = 'none';
+                    
+                    tg.showPopup({
+                        title: "Запрос отправлен",
+                        message: `Создан счет на ${amount} единиц валюты за ${amount} звезд`,
+                        buttons: [{type: "ok"}]
+                    });
+                } else {
+                    alert(`Создан счет на ${amount} единиц валюты за ${amount} звезд`);
+                    balanceModal.style.display = 'none';
+                }
+            } else {
+                tg.showPopup({
+                    title: "Ошибка",
+                    message: "Введите корректное количество (минимум 10)",
+                    buttons: [{type: "ok"}]
+                });
+            }
+        });
+        
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+            if (e.target === balanceModal) {
+                balanceModal.style.display = 'none';
+            }
+        });
+        
+        // Загрузка данных пользователя из Telegram
+        function loadUserData() {
+            if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                const user = tg.initDataUnsafe.user;
+                
+                // Устанавливаем имя пользователя
+                if (user.first_name) {
+                    userName.textContent = user.first_name;
+                    if (user.last_name) {
+                        userName.textContent += ' ' + user.last_name;
+                    }
+                } else if (user.username) {
+                    userName.textContent = user.username;
+                } else {
+                    userName.textContent = 'Пользователь';
+                }
+                
+                // Устанавливаем username
+                if (user.username) {
+                    userHandle.textContent = '@' + user.username;
+                    userHandle.style.display = 'block';
+                } else {
+                    userHandle.style.display = 'none';
+                }
+                
+                // Устанавливаем аватар
+                if (user.photo_url) {
+                    userAvatar.innerHTML = '';
+                    const img = document.createElement('img');
+                    img.src = user.photo_url;
+                    img.alt = 'Аватар пользователя';
+                    userAvatar.appendChild(img);
+                } else {
+                    userAvatar.innerHTML = '<i class="fa-solid fa-user"></i>';
+                }
+                
+                // Отправляем данные на сервер для сохранения
+                sendUserDataToServer(user);
+            } else {
+                // Если данные недоступны, показываем тестовые данные
+                userName.textContent = 'Тестовый пользователь';
+                userHandle.textContent = '@testuser';
+                userHandle.style.display = 'block';
+            }
+        }
+        
+        // Функция для отправки данных пользователя на сервер
+        function sendUserDataToServer(user) {
+            // Здесь должен быть код для отправки данных на ваш сервер
+            console.log('Данные пользователя для отправки на сервер:', user);
+        }
+        
+        // Инициализация при загрузке
+        document.addEventListener('DOMContentLoaded', function() {
+            loadUserData();
+            
+            // Показываем раздел профиля по умолчанию
+            showSection('profile-section');
+        });
+    </script>
+</body>
+</html>
