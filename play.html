@@ -776,7 +776,6 @@
                 document.getElementById('players').value = '';
                 document.getElementById('bet').value = '';
                 
-                // Показываем уведомление
                 tg.showPopup({
                     title: "Игра создана!",
                     message: `Игра "${name}" успешно создана.`,
@@ -791,14 +790,12 @@
             }
         });
         
-        // Модальное окно пополнения баланса
         document.querySelector('.add-balance').addEventListener('click', function() {
             currencyAmount.value = '';
             starsCost.textContent = '0';
             balanceModal.style.display = 'flex';
         });
         
-        // Обновление стоимости в звездах
         currencyAmount.addEventListener('input', function() {
             const amount = parseInt(this.value) || 0;
             starsCost.textContent = amount;
@@ -811,7 +808,7 @@
         submitBalance.addEventListener('click', function() {
             const amount = parseInt(currencyAmount.value);
             
-            if (amount && amount >= 10) {
+            if (amount && amount >= 1) {
                 const data = {
                     type: 'payment',
                     amount: amount,
@@ -820,14 +817,10 @@
                     timestamp: Date.now()
                 };
                 
-                // Отправка данных через Telegram Web App
                 tg.sendData(JSON.stringify(data));
-                
-                // Показ статуса обработки
                 paymentStatusModal.style.display = 'flex';
                 balanceModal.style.display = 'none';
                 
-                // В реальном приложении здесь будет обновление баланса после успешного платежа
                 setTimeout(() => {
                     paymentStatusModal.style.display = 'none';
                     balanceAmount.textContent = parseInt(balanceAmount.textContent) + amount;
@@ -842,7 +835,7 @@
             else {
                 tg.showPopup({
                     title: "Ошибка",
-                    message: "Введите корректное количество (минимум 10)",
+                    message: "Введите корректное количество (минимум 1)",
                     buttons: [{type: "ok"}]
                 });
             }
