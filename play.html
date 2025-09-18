@@ -791,6 +791,42 @@
             }
         });
         
+        // Обновленная функция обработки платежей
+        async function processPayment(amount) {
+            try {
+                // Показываем статус обработки
+                paymentStatusModal.style.display = 'flex';
+                
+                // Создаем запрос на получение платежной ссылки
+                const paymentData = {
+                    type: 'payment_request',
+                    amount: amount,
+                    user_id: tg.initDataUnsafe.user.id,
+                    timestamp: Date.now()
+                };
+                
+                // Отправляем данные боту
+                tg.sendData(JSON.stringify(paymentData));
+                
+                // Показываем уведомление об успехе
+                tg.showPopup({
+                    title: "Запрос отправлен",
+                    message: `Платежная ссылка будет отправлена в чат с ботом`,
+                    buttons: [{type: "ok"}]
+                });
+                
+            } catch (error) {
+                console.error('Payment error:', error);
+                tg.showAlert('Ошибка при создании платежа: ' + error.message);
+            } finally {
+                // Скрываем статус через 3 секунды
+                setTimeout(() => {
+                    paymentStatusModal.style.display = 'none';
+                }, 3000);
+            }
+        }
+        
+        // Обработчики пополнения баланса
         document.querySelector('.add-balance').addEventListener('click', function() {
             currencyAmount.value = '';
             starsCost.textContent = '0';
@@ -806,34 +842,14 @@
             balanceModal.style.display = 'none';
         });
         
-        submitBalance.addEventListener('click', function() {
+        // Обновленный обработчик кнопки оплаты
+        submitBalance.addEventListener('click', async function() {
             const amount = parseInt(currencyAmount.value);
             
             if (amount && amount >= 1) {
-                const data = {
-                    type: 'payment',
-                    amount: amount,
-                    currency: 'stars',
-                    user_id: tg.initDataUnsafe.user.id,
-                    timestamp: Date.now()
-                };
-                
-                tg.sendData(JSON.stringify(data));
-                paymentStatusModal.style.display = 'flex';
+                await processPayment(amount);
                 balanceModal.style.display = 'none';
-                
-                setTimeout(() => {
-                    paymentStatusModal.style.display = 'none';
-                    balanceAmount.textContent = parseInt(balanceAmount.textContent) + amount;
-                    
-                    tg.showPopup({
-                        title: "Запрос отправлен",
-                        message: `Создан счет на ${amount} единиц валюты за ${amount} звезд`,
-                        buttons: [{type: "ok"}]
-                    });
-                }, 3000);
-            } 
-            else {
+            } else {
                 tg.showPopup({
                     title: "Ошибка",
                     message: "Введите корректное количество (минимум 1)",
@@ -890,7 +906,7 @@
                     const img = document.createElement('img');
                     img.src = user.photo_url;
                     img.alt = 'Аватар пользователя';
-                    userAvatar.appendChild(img);
+                    userAvatar.appendChild(img);    
                 } else {
                     userAvatar.innerHTML = '<i class="fa-solid fa-user"></i>';
                 }
