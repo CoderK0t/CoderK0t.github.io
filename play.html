@@ -158,6 +158,7 @@
         .profile-container {
             text-align: center;
             padding: 20px 0;
+            position: relative;
         }
         
         .avatar {
@@ -554,7 +555,7 @@
         <div id="info-section" class="section">
             <div class="info-container">
                 <h2><i class="fa-solid fa-circle-info"></i> О приложении</h2>
-                <p>CubeGift — это игровая платформа, где вы можете участвовать в розыгрышах и получать ценные призы.</p>
+                <p>CubeGift — это игровая платформа, где вы можете участвовать в розыгрыша и получать ценные призы.</p>
                 <p>Пополняйте баланс Telegram Stars и выигрывайте подарки!</p>
                 
                 <div class="stars-info">
@@ -612,7 +613,7 @@
             </div>
             
             <label for="currencyAmount">Количество валюты</label>
-            <input type="number" id="currencyAmount" min="10" placeholder="Введите количество" />
+            <input type="number" id="currencyAmount" min="1" max="2500" placeholder="Введите количество" />
             <p style="font-size: 14px; margin: 10px 0; text-align: center;">
                 Стоимость: <span id="starsCost">0</span> ⭐
             </p>
@@ -663,6 +664,7 @@
                 },
                 sendData: function(data) {
                     console.log('Data sent to bot:', data);
+                    // В реальной среде это отправит данные боту
                     alert('В реальной среде это отправило бы данные боту. Отправленные данные: ' + data);
                 },
                 showPopup: function(options) {
@@ -846,13 +848,13 @@
         submitBalance.addEventListener('click', async function() {
             const amount = parseInt(currencyAmount.value);
             
-            if (amount && amount >= 1) {
+            if (amount && amount >= 1 && amount <= 2500) {
                 await processPayment(amount);
                 balanceModal.style.display = 'none';
             } else {
                 tg.showPopup({
                     title: "Ошибка",
-                    message: "Введите корректное количество (минимум 1)",
+                    message: "Введите корректное количество (от 1 до 2500)",
                     buttons: [{type: "ok"}]
                 });
             }
