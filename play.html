@@ -10,7 +10,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
-        /* Стили остаются без изменений */
         :root {
             --bg1: #0f172a;
             --bg2: #0b1324;
@@ -154,7 +153,6 @@
             background: rgba(6, 182, 212, 0.05);
         }
         
-        /* Стили для профиля */
         .profile-container {
             text-align: center;
             padding: 20px 0;
@@ -236,7 +234,6 @@
             transform: scale(1.1);
         }
         
-        /* Стили для игрового раздела */
         .games-list {
             margin-top: 20px;
             width: 100%;
@@ -292,7 +289,6 @@
             color: #fff;
         }
         
-        /* Стили для информации */
         .info-container {
             text-align: center;
             padding: 20px 0;
@@ -314,7 +310,6 @@
             margin-top: 10px;
         }
         
-        /* Модальное окно */
         .modal {
             position: fixed;
             inset: 0;
@@ -419,7 +414,6 @@
             margin-right: 5px;
         }
         
-        /* Стили для статуса платежа */
         .payment-status {
             text-align: center;
             padding: 20px 0;
@@ -454,7 +448,6 @@
             margin-right: 8px;
         }
         
-        /* Анимации */
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -481,7 +474,6 @@
             100% { width: 100%; }
         }
         
-        /* Адаптивность для Telegram */
         @media (max-width: 500px) {
             .container {
                 padding: 15px;
@@ -645,12 +637,18 @@
         // Инициализация Telegram Web App
         let tg = window.Telegram.WebApp;
         
+        // Функция для получения user_id из URL параметров
+        function getUserIdFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('user_id');
+        }
+        
         // Эмуляция Telegram WebApp для локальной разработки
         if (!tg || !tg.initDataUnsafe) {
             tg = {
                 initDataUnsafe: {
                     user: {
-                        id: 123456789,
+                        id: getUserIdFromUrl() || 123456789, // Используем user_id из URL или тестовый
                         first_name: 'Тестовый',
                         username: 'testuser',
                         photo_url: null
@@ -799,11 +797,14 @@
                 // Показываем статус обработки
                 paymentStatusModal.style.display = 'flex';
                 
+                // Получаем user_id из URL или из объекта Telegram
+                const user_id = getUserIdFromUrl() || tg.initDataUnsafe.user.id;
+                
                 // Создаем запрос на получение платежной ссылки
                 const paymentData = {
                     type: 'payment_request',
                     amount: amount,
-                    user_id: tg.initDataUnsafe.user.id,
+                    user_id: user_id, // Используем полученный user_id
                     timestamp: Date.now()
                 };
                 
@@ -927,6 +928,10 @@
             
             // Показываем раздел профиля по умолчанию
             showSection('profile-section');
+            
+            // Выводим в консоль user_id для отладки
+            const user_id = getUserIdFromUrl() || tg.initDataUnsafe.user.id;
+            console.log('User ID:', user_id);
         });
     </script>
 </body>
