@@ -448,6 +448,16 @@
             margin-right: 8px;
         }
         
+        .debug-info {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+        
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -540,6 +550,11 @@
                     <i class="fa-solid fa-triangle-exclamation"></i>
                     <strong>Режим разработки</strong>
                     <p>Баланс обновляется вручную. В реальном приложении будет автоматическая синхронизация с сервером.</p>
+                </div>
+                
+                <div class="debug-info" id="debugInfo">
+                    <strong>Отладочная информация:</strong>
+                    <div id="debugContent">Загрузка...</div>
                 </div>
             </div>
         </div>
@@ -643,12 +658,46 @@
             return urlParams.get('user_id');
         }
         
+        // Функция для отладки - выводит все параметры URL
+        function debugUrlParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const params = {};
+            for (const [key, value] of urlParams.entries()) {
+                params[key] = value;
+            }
+            return params;
+        }
+        
+        // Функция для обновления отладочной информации
+        function updateDebugInfo() {
+            const debugContent = document.getElementById('debugContent');
+            const user_id = getUserIdFromUrl();
+            const urlParams = debugUrlParams();
+            
+            let debugHTML = `
+                <div>User ID из URL: ${user_id || 'не найден'}</div>
+                <div>Все параметры URL: ${JSON.stringify(urlParams)}</div>
+            `;
+            
+            if (tg && tg.initDataUnsafe) {
+                debugHTML += `
+                    <div>Telegram User ID: ${tg.initDataUnsafe.user?.id || 'не доступен'}</div>
+                    <div>Имя пользователя: ${tg.initDataUnsafe.user?.first_name || 'не доступно'}</div>
+                    <div>Username: ${tg.initDataUnsafe.user?.username || 'не доступен'}</div>
+                `;
+            }
+            
+            debugContent.innerHTML = debugHTML;
+        }
+        
         // Эмуляция Telegram WebApp для локальной разработки
         if (!tg || !tg.initDataUnsafe) {
+            const userIdFromUrl = getUserIdFromUrl();
+            
             tg = {
                 initDataUnsafe: {
                     user: {
-                        id: getUserIdFromUrl() || 123456789, // Используем user_id из URL или тестовый
+                        id: userIdFromUrl || 123456789,
                         first_name: 'Тестовый',
                         username: 'testuser',
                         photo_url: null
@@ -664,6 +713,10 @@
                     console.log('Data sent to bot:', data);
                     // В реальной среде это отправит данные боту
                     alert('В реальной среде это отправило бы данные боту. Отправленные данные: ' + data);
+                    
+                    // Добавляем информацию о отправке данных в отладку
+                    const debugContent = document.getElementById('debugContent');
+                    debugContent.innerHTML += `<div style="color: #10b981; margin-top: 10px;">Данные отправлены боту: ${data}</div>`;
                 },
                 showPopup: function(options) {
                     alert(options.title + ': ' + options.message);
@@ -791,27 +844,39 @@
             }
         });
         
-        // Обновленная функция обработки платежей
+        // Обновленная функция обработки платежей с отладкой
         async function processPayment(amount) {
             try {
-                // Показываем статус обработки
+                console.log('Starting payment process, amount:', amount);
                 paymentStatusModal.style.display = 'flex';
                 
                 // Получаем user_id из URL или из объекта Telegram
-                const user_id = getUserIdFromUrl() || tg.initDataUnsafe.user.id;
+                const user_id = getUserIdFromUrl() || (tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id);
                 
-                // Создаем запрос на получение платежной ссылки
+                console.log('User ID:', user_id);
+                
+                if (!user_id) {
+                    const errorMsg = 'Ошибка: не удалось определить ID пользователя';
+                    console.error(errorMsg);
+                    tg.showAlert(errorMsg);
+                    paymentStatusModal.style.display = 'none';
+                    return;
+                }
+                
                 const paymentData = {
                     type: 'payment_request',
                     amount: amount,
-                    user_id: user_id, // Используем полученный user_id
+                    user_id: user_id,
                     timestamp: Date.now()
                 };
+                
+                console.log('Sending payment data:', paymentData);
                 
                 // Отправляем данные боту
                 tg.sendData(JSON.stringify(paymentData));
                 
-                // Показываем уведомление об успехе
+                console.log('Data sent successfully');
+                
                 tg.showPopup({
                     title: "Запрос отправлен",
                     message: `Сообщение со счетом для оплаты будет отправлено в чат с ботом. Пожалуйста, вернитесь в чат для завершения операции.`,
@@ -822,7 +887,6 @@
                 console.error('Payment error:', error);
                 tg.showAlert('Ошибка при создании платежа: ' + error.message);
             } finally {
-                // Скрываем статус через 5 секунд
                 setTimeout(() => {
                     paymentStatusModal.style.display = 'none';
                 }, 5000);
@@ -924,14 +988,24 @@
         
         // Инициализация при загрузке
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('Mini App loaded');
+            
+            // Обновляем отладочную информацию
+            updateDebugInfo();
+            
+            // Загружаем данные пользователя
             loadUserData();
             
             // Показываем раздел профиля по умолчанию
             showSection('profile-section');
             
             // Выводим в консоль user_id для отладки
-            const user_id = getUserIdFromUrl() || tg.initDataUnsafe.user.id;
+            const user_id = getUserIdFromUrl() || (tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id);
             console.log('User ID:', user_id);
+            
+            // Выводим все параметры URL для отладки
+            const urlParams = debugUrlParams();
+            console.log('URL Parameters:', urlParams);
         });
     </script>
 </body>
